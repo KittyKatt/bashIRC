@@ -1,0 +1,84 @@
+#!/bin/bash
+
+function remove_htmlchars() {
+	string="${@}"
+	_ret=$(echo "$string" | sed -e 's/^[ \t]*//' -e 's/&quot;/"/g;s/&#34;/"/g' -e 's/&amp;/&/g;s/&#38;/&/g' -e 's/&gt;/>/g;s/&#62;/>/g' -e 's/&lt;/</g;s/&#60;/</g')
+	_ret=$(echo "$_ret" | sed -e 's/&#40;/(/g' -e 's/&#41;/)/g' -e 's/&#09;//g' -e 's/&bull;//g;s/&#8226;//g' -e 's/&raquo;/>>/g;s/&#187;/>>/g' -e 's/&laquo;/<</g;s/&#171;/<</g')
+	echo "$_ret"
+}
+
+
+if [ "$(type)" = "PRIVMSG" ] && [ "$(dest chan)" ]; then
+
+	text=$(text | sed "s/${conf}//")
+	cmd=$(text | awk '{print $1}')
+
+	# URL Title Parsing
+	if [[ "$text" =~ "http://" ]] || [[ "$text" =~ "https://" ]]; then
+		if [[ ! "${cmd:0:1}" =~ "$(fantasy.char)" ]]; then
+			module_label=$'\x02'"["$'\x032'"URL"$'\x0f\x02'"]"$'\x0f'
+			my_url=$(echo "$text" | egrep -o "http[s]?://[^']+" | awk '{print $1}')
+			my_domain=$(echo "$my_url" |  awk -F'/' '{print $3}')
+			###### YouTube Link parsing
+			if [ "$my_domain" == "www.youtube.com" ] || [ "$my_domain" == "youtu.be" ]; then
+				if [ "$parse_ytlinks" == "1" ]; then
+					submodule_label=$'\x02'"("$'\x034'"YouTube"$'\x0f\x02'")"$'\x0f'
+					[[ "$my_domain" == "www.youtube.com" ]] && my_videoid=$(echo "$my_url" | tr "?&" "\n\n" | grep "^v=" | cut -d "=" -f 2)
+					[[ "$my_domain" == "youtube.com" ]] && my_videoid=$(echo "$my_url" | tr "?&" "\n\n" | grep "^v=" | cut -d "=" -f 2)
+					[[ "$my_domain" == "youtu.be" ]] && my_videoid=$(echo "$my_url" | awk -F'/' '{print $NF}')
+					_ret=$(curl -sL "https://gdata.youtube.com/feeds/api/videos/${my_videoid}?v=2")
+					echo "$_ret" > /tmp/yttmp
+					my_vidoetitle=$(echo "$_ret" | grep -o '<title>.*</title>' | sed 's/<title>//;s/<\/title>//')
+					my_videoauthor=$(echo "$_ret" | grep -Eo "<author><name>.*</name>" | sed 's/<author><name>//;s/<\/name>//')
+					my_videodate=$(echo "$_ret" | grep -o "<yt:uploaded>.*</yt:uploaded>" | sed 's/<yt:uploaded>//;s/T.*Z<\/yt:uploaded>//')
+					my_videoviews=$(echo "$_ret" | grep -Eo "viewCount='[0-9]+'" | sed "s/viewCount='//;s/'$//" | sed -r ':L;s=\b([0-9]+)([0-9]{3})\b=\1,\2=g;t L')
+
+					my_videolength=$(echo "$_ret" | grep -Eo "<yt:duration seconds='[0-9]+'/>" | sed "s/<yt:duration seconds='//;s/'\/>//")
+					my_videolength_s=$((${my_videolength}%60))
+					my_videolength_m=$((${my_videolength}/60%60))
+					my_videolength_h=$((${my_videolength}/3600%24))
+					my_videolength="${my_videolength_s}s"
+					if [ "${my_videolength_h}" -ne "0" ]; then
+						my_videolength="${my_videolength_h}h ${my_videolength_m}m ${my_videolength}"
+					fi
+					if [ "${my_videolength_m}" -ne "0" ]; then
+						my_videolength="${my_videolength_m}m ${my_videolength}"
+					fi
+
+					msg $(dest chan) ${module_label}" "${submodule_label}$'\x02'" ${my_vidoetitle}"$'\x0f'" | length:"$'\x02'" ${my_videolength} "$'\x0f'" | views:"$'\x02'" ${my_videoviews} "$'\x0f'"|"$'\x02'" ${my_videoauthor}"$'\x0f'" on"$'\x02'" ${my_videodate}"$'\x0f'
+				fi
+			##### BakaBT Torrent Parsing
+			#elif [ "$my_domain" == "bakabt.me" ] || [ "$my_domain" == "www.bakabt.me" ]; then
+			#	if [ "$parse_bbtlinks" == "1" ]; then
+			#		submodule_label=$'\x02'"("$'\x034'"BakaBT"$'\x0f\x02'")"$'\x0f'
+			#		_ret=$(curl -sL "$my_url" 2>/dev/null)
+			#		my_torrentname=$(echo "$_ret" | grep -A 2 '<div id="description_title">' | tail -1 | sed -e 's/&nbsp;.*<\/h1>//')
+			#		_subret=$(echo "$_ret" | grep -A 65 '<div id="statistics">')
+			#		my_torrentpeers=$(echo "$_subret" | grep -A 1 '<td>Size:</td>' | tail -1 | sed 's/.*<td>//;s/</\td>$//')
+
+			##### 4Chan Parsing
+			#elif [[ "$my_domain" == "boards.4chan.org" ]]; then
+				#if [ "$parse_4chanlinks" == "1" ]; then
+					#if [[ "$my_url" =~ "/res/" ]]; then
+						#board_letter=$(echo "$my_url" | awk -F'/' '{print $4}')
+						#submodule_label=$'\x02'$'\x034'"/${board_letter}/"$'\x0f'
+						#_ret=$(curl -sL "$my_url" 2>/dev/null)
+						#_subret=$(echo "$my_url" | grep 
+						#msg $(dest chan ) ${module_label}" "${submodule_label}$'\x02'" success."$'\x0f'
+					#fi
+				#fi
+
+			else
+				if [[ "$my_url" =~ ".jpg" || "$my_url" =~ ".png" || "$my_url" =~ ".jpeg" || "$my_url" =~ ".gif" ]]; then break
+				else
+					my_title=$(wget "$my_url" -O - 2> /dev/null | awk -vRS="</title>" '/<title>/{gsub(/.*<title>|\n+/,"");print;}')
+					if [[ "${my_title}" =~ "( ͡° ͜ʖ ͡°)" || "${my_title}" =~ "(✿ ͡° ͜ʖ ͡°)"  || "${my_title}" =~ "lel" ]]; then my_title=; fi
+					# Okay, so let's run this through a crazy function for HTML special characters
+					my_title=$(remove_htmlchars "$my_title")
+					if [[ -n "$my_title" ]]; then msg $(dest chan) ${module_label}" Title: ${my_title:-Not Found} (at $my_domain)"; fi
+				fi
+			fi
+		fi
+	fi
+
+fi

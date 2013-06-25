@@ -1,0 +1,46 @@
+#!/bin/bash
+
+module_label=$'\x02'"["$'\x032'"Core"$'\x0f\x02'"]"$'\x0f'
+
+$(help.hook "$(fantasy.char)help [module] [?command] -- Displays list of commands in module or help on a specific command.") > /dev/null
+
+function help.do() {
+	if [ "$1" ]; then
+		mymodule=$(echo "$1" | awk '{print $1}')
+		mycommand=$(echo "$1" | awk '{print $2}')
+		if [ -n "${mymodule}" ]; then
+			if [ -f ../modules/${mymodule}.module ]; then
+				if [ -n "${mycommand}"  ]; then
+					cmdtoomany=$(echo "$1" | awk '{print $3}')
+					if [ -n "${cmdtoomany}" ]; then msg $(dest chan) ${module_label}" Too many arguments, dumbass. Usage: $(fantasy.char)help [module] [?command]."
+					else
+						cmdexists=$(grep "help.hook" ../modules/${mymodule}.module | grep "(fantasy.char)${mycommand}")
+						if [ -n "$cmdexists" ]; then
+							cmdhelp=$(echo "$cmdexists" | sed -e "s/\$(help.hook \"\$(fantasy.char)/@/" -e 's/") > \/dev\/null//')
+							msg $(dest chan) ${module_label}" $cmdhelp"
+						else
+							msg $(dest chan) ${module_label}" There's no help available for that command. Maybe you should check it actually exists?"
+						fi
+					fi
+				else
+					fantasylist=$(grep "fantasy.hook" ../modules/${mymodule}.module | grep -v '#' | sed -e 's/hook=\$(fantasy.hook /@/g' | awk '{print $1}')
+					if [ `echo "$fantasylist" | wc -l` -gt "1" ]; 
+						then fantasylist=$(echo "$fantasylist" | tr '\n' ',' | sed 's/,/, /g')
+						fantasylist=$(echo "$fantasylist" | rev | cut -c 3- | rev)
+					else
+						fantasylist=$(echo "$fantasylist" | rev | cut -c 1- | rev)
+					fi
+					fantasylist=$(echo "$fantasylist" | sed "s/$(fantasy.char)shell, //")
+					if [ -n "${fantasylist}" ]; then msg $(dest chan) ${module_label}" Available Commands in ${mymodule} : ${fantasylist}"
+					else msg $(dest chan) ${module_label}" There doesn't appear to be any commands available in that module!"; fi
+				fi
+			else
+				msg $(dest chan) ${module_label}" That module/command doesn't exist, sorry."
+			fi
+		elif [ ! "${mymodule}" ]; then
+			msg $(dest chan) ${module_label}" You need to specifiy a module! Usage: $(fantasy.char)help [module] [?command]. For a list of loaded modules, please run $(fantasy.char)module list loaded."
+		fi
+	fi
+}
+
+hook=$(fantasy.hook help help.do > /dev/null)

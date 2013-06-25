@@ -1,0 +1,52 @@
+#!/bin/bash
+
+$(help.hook "$(fantasy.char)alp [package name] -- Reports info on an Arch Linux official or unsupported package.") > /dev/null
+
+function json_awk() {
+	_mykey="$1"
+	_mysearch="$2"
+	echo "$_mysearch" 2>/dev/null | awk -F"\",\"" -v k="$_mykey" '{
+		    gsub(/{|}/,"")
+		    for(i=1;i<=NF;i++){
+		        if ( $i ~ k ){
+		            print $i
+		        }
+		    }
+		}' &2>/dev/null
+}
+
+function aursearch() {
+	module_label=$'\x02'"["$'\x032'"AUR"$'\x0f\x02'"]"$'\x0f'
+	_query=$(echo "$1" | awk '{print $1}')
+	_myresult=$(curl -sL 'https://aur.archlinux.org/rpc.php?type=info&arg='$_query)
+	if [[ '{"type":"info","resultcount":0,"results":[]}' == "$_myresult" ]]; then msg $(dest chan) ${module_label}" Package not found!"
+	else
+		_pkgid=$(json_awk "ID" "$_myresult" | sed -e 's/ID"://' -e 's/^"//' -e 's/"$//' -e 's/results":""//' -e 's/Category".*//' -e 's/Location".*//' -e 's/,"Name":".*//' -e 's/Category.*//' | head -n1)
+		_pkgname=$(json_awk "Name" "$_myresult" | sed -e 's/Name":"//' -e 's/^"//' -e 's/"$//' -e 's/.*":".*//' -e 's/ID":.*,"//' -e 's/Maintainer":null,"//')
+		_pkgmaint=$(json_awk "Maintainer" "$_myresult" | sed -e 's/Maintainer":"//' -e 's/results":"//' -e 's/resultcount":.*,"//')
+		_pkgver=$(json_awk "Version" "$_myresult" | sed -e 's/Version"://' -e 's/^"//' -e 's/"$//' -e 's/.*":".*//')
+		_pkgdesc=$(json_awk "Description" "$_myresult" | sed -e 's/Description":"//' -e 's/^"//' -e 's/"$//' -e 's/.*":".*//' -e 's/CategoryID":.*,"//')
+		_pkgurl=$(json_awk "URL" "$_myresult" | sed -e 's/URL"://' -e 's/^"//' -e 's/\\\//\//g' -e 's/"$//' -e 's/.*":".*//')
+		_pkglicense=$(json_awk "License" "$_myresult" | sed -e 's/License"://' -e 's/^"//' -e 's/"$//' -e 's/.*":".*//')
+		_pkgstatus=$(json_awk "OutOfDate" "$_myresult" | sed -e 's/OutOfDate"://' -e 's/^"//' -e 's/"$//' -e 's/^NumVotes":[0-9]*,"//' -e 's/,"FirstSubmitted":.*//' -e 's/0/No/' -e 's/1/Yes/')
+		_pkgvotes=$(json_awk "NumVotes" "$_myresult" | sed -e 's/NumVotes"://' -e 's/^"//' -e 's/"$//' -e 's/,".*//')
+		msg $(dest chan) ${module_label}" ( ${_pkgname} ) | Package ID: ${_pkgid}. Maintained by: ${_pkgmaint}. Package Version: ${_pkgver}. Description: \"${_pkgdesc}\". Home: ${_pkgurl}. License: ${_pkglicense}. Current # of Votes: ${_pkgvotes}."
+	fi
+}
+
+function pkgsearch() {
+	module_label=$'\x02'"["$'\x032'"Pacman"$'\x0f\x02'"]"$'\x0f'
+	_query=$(echo "$1" | awk '{print $1}')
+	_myresult=$(pacman -Si "$_query" 2> /dev/null)
+	if [[ -z "$_myresult" ]]; then msg $(dest chan) ${module_label}" Package not found...searching AUR."; aursearch "$_query"
+	else
+		_pkgname=$(echo "$_myresult" | grep 'Name' | head -n1 | sed 's/^Name           : //')
+		_pkgpackager=$(echo "$_myresult" | grep 'Packager' | head -n1 | sed 's/^Packager       : //')
+		_pkgver=$(echo "$_myresult" | grep 'Version' | head -n1 | sed 's/^Version        : //')
+		_pkgurl=$(echo "$_myresult" | grep 'URL' | head -n1 | sed 's/^URL            : //')
+		_pkgdesc=$(echo "$_myresult" | grep 'Description' | head -n1 | sed 's/^Description    : //')
+		msg $(dest chan) ${module_label}" ( ${_pkgname} ) | Packaged by: ${_pkgpackager}. Package Version: ${_pkgver}. Description: \"${_pkgdesc}\". URL: ${_pkgurl}."
+	fi
+}
+
+hook=$(fantasy.hook alp pkgsearch > /dev/null)

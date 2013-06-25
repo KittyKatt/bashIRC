@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+$(help.hook "$(fantasy.char)shorten [url] -- Shortens URL for you using is.gd.") > /dev/null
+
+function shorten() {
+        #Using fantasy omits the original fantasy word
+        my_url=$(echo "$1" | awk '{print $1}')
+        if [[ "$my_url" =~ "&format=" ]]; then
+                if [[ "$my_url" =~ "&format=xml" ]] || [[ "$my_url" =~ "&format=simple" ]$
+                        shortened=$(curl -s "http://is.gd/api.php?longurl=${my_url}")
+                        # shortened=$(curl -sL "http://scurl.tk/api.php?format=simple&act$
+                        msg $(dest) "Shortened URL: $shortened"
+                elif [[ "$my_url" =~ "&format=web" ]]; then
+                        msg $(dest) "Don't be a dumbass, bro."
+                else
+                        my_url=$(echo "$my_url" | sed 's/format=.*/format=simple/g')
+                        shortened=$(curl -s "http://is.gd/api.php?longurl=${my_url}")
+                        # shortened=$(curl -sL "http://scurl.tk/api.php?format=simple&act$
+                        msg $(dest) "Shortened URL: $shortened"
+                fi
+        else
+                shortened=$(curl -s "http://is.gd/api.php?longurl=${my_url}")
+                # shortened=$(curl -sL "http://scurl.tk/api.php?format=simple&action=shor$
+                msg $(dest) "Shortened URL: $shortened"
+        fi
+}
+
+
+hook=$(fantasy.hook shorten shorten > /dev/null)

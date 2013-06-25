@@ -1,7 +1,7 @@
 #!/bin/bash
 #Core connection to IRC
 slap=$1
-tail -f "$slap" | telnet $2 ${3:-6667} | \
+tail -f "$slap" | telnet $2 ${3:-6667} | tee ${slap}.output | \
 while true
 do read LINE || break
    echo "$LINE ."

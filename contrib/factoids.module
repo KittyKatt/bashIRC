@@ -1,0 +1,85 @@
+#!/bin/bash
+if [ "$(type)" = "PRIVMSG" ] && [ "$(dest chan)" ]; then
+
+	text=$(text | sed 's/bashIRC.conf//')
+	cmd=$(echo ${text} | awk '{print $1}')
+
+	if [ "${cmd}" = "$(fantasy.char)factoid" ]; then
+		echo "rawr" > /tmp/rawr
+		if [ "$(echo ${text} | awk '{print $2}')" = "add" ]; then
+			if [ ! "$(cat ../staticfiles/factoids | grep -i "info:$(echo ${text} | awk '{print $3}')")" ]; then
+				echo "info:$(echo ${text} | awk '{print $3}') $(text | awk '{ s = ""; for (i = 4; i <= NF; i++) s = s $i " "; print s }')" >> ../staticfiles/factoids
+				msg $(dest chan) "[Factoids] Factoid \"$(echo ${text} | awk '{print $3}')\" added!"
+			else
+				stuff=$(sed -e "s/info:$(echo ${text} | awk '{print $3}') \(.*\)/info:$(echo ${text} | awk '{print $3}') $(text | awk '{ s = ""; for (i = 4; i <= NF; i++) s = s $i " "; print s }')/" "../staticfiles/factoids" > .stuff)
+				mv .stuff ../staticfiles/factoids
+				msg $(dest chan) "[Factoids] Factoid \"$(echo ${text} | awk '{print $3}')\" modified!"
+			fi
+		#elif [ "$(echo ${text} | awk '{print $2}')" = "rm" ]; then
+		#	line=$(cat ../staticfiles/factoids | grep -i "info:$(text | awk '{print $3}')")
+		#	if [ ! "$line" ]; then
+		#		msg $(dest chan) "[Factoids] Sorry, no definition for $(text | awk '{print $2}') exists."
+		#	else
+		#		stuff=$(sed "s/$(cat ../staticfiles/factoids | grep -i "info:$(text | awk '{print $2}')")//" ../staticfiles/factoids > .stuff)
+		#		mv .stuff ../staticfiles/factoids
+		#		msg $(dest chan) "[Factoids] Factoid \"$(echo ${text} | awk '{print $3}')\" removed!"
+		#	fi
+		else
+			line=$(cat ../staticfiles/factoids | grep -i "info:$(text | awk '{print $2}')")
+			if [ ! "$line" ]; then
+				msg $(dest chan) "[Factoids] Sorry, no definition for $(text | awk '{print $2}') exists."
+			else
+				echo "$line" > /tmp/stuff
+				while read lol; do
+					msg $(dest) "[Factoids] \"$(text | awk '{print $2}')\" is ${lol#* }."
+				done < /tmp/stuff
+			fi
+		fi
+	fi
+fi
+			
+
+#if [ "$(text | awk '{print $1}')" = "what" ] && [ "$(text | awk '{print $2}')" = "is" ]; then
+#		line=$(cat stuff | grep -i "info:$(text | awk '{print $3}' | sed -e 's/?//')")
+#		if [ ! "$line" ]; then
+#			notice $(nick) "Sorry, no definition for $(text | awk '{print $3}') exists."
+#		else
+#			echo "$line" > /tmp/shit
+#		 x=
+#			while read shit; do
+#				msg $(dest) "${shit#* }"
+#			done < /tmp/shit
+#		fi
+#
+#		elif [ "$(text | awk '{print $1}')" = "what" ] && [ "$(text | awk '{print $2}')" = "are" ]; then
+#		line=$(cat stuff | grep -i "info:$(text | awk '{print $3}' | sed -e 's/?//')")
+#		if [ ! "$line" ]; then
+#			notice $(nick) "Sorry, no definition for $(text | awk '{print $3}') exists."
+#		else
+#			echo "$line" > /tmp/shit
+#			while read shit; do
+#				msg $(dest) "${shit#* }"
+#			done < /tmp/shit
+#		fi
+#		elif [ "$(text | awk '{print $2}')" = "is" ]; then
+#		
+#		stuff=$(sed -e "s/info:$(text | awk '{print $2}') \(.*\)/info:$(text | awk '{print $2}') $(text)/" "stuff")
+#		if [ ! "$(cat stuff | grep -i "info:$(text | awk '{print $1}')")" ]; then
+#			echo "info:$(text | awk '{print $1}') $(text)" >> stuff
+#		else
+#			stuff=$(sed -e "s/info:$(text | awk '{print $2}') \(.*\)/info:$(text | awk '{print $2}') $(text)/" "stuff" > .stuff)
+#			mv .stuff stuff
+#		fi
+#		notice $(nick) "Added definition"
+#		elif [ "$(text | awk '{print $2}')" = "are" ]; then
+#		
+#		stuff=$(sed -e "s/info:$(text | awk '{print $2}') \(.*\)/info:$(text | awk '{print $2}') $(text)/" "stuff")
+#		if [ ! "$(cat stuff | grep -i "info:$(text | awk '{print $1}')")" ]; then
+#			echo "info:$(text | awk '{print $1}') $(text)" >> stuff
+#		else
+#			stuff=$(sed -e "s/info:$(text | awk '{print $2}') \(.*\)/info:$(text | awk '{print $2}') $(text)/" "stuff" > .stuff)
+#			mv .stuff stuff
+#		fi
+#		notice $(nick) "Added definition"
+#	fi
+#fi

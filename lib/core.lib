@@ -9,11 +9,13 @@ function notice() {
    $(bot.out "NOTICE $1 :${@:2}")
 }
 function nick() {
-   if [ ! "$bashirc_nick" ]; then
-      bashirc_nick=$(echo "$input" | awk '{print $1}' | sed -e 's/://;s/!/ /;' | awk '{print $1}')
-      bashirc_nick=$(echo "$bashirc_nick" | awk '{print $1}')
-   fi
-   echo "$bashirc_nick"
+	if [ "${@}" ]; then
+		if [ ! "$bashirc_nick" ]; then
+			bashirc_nick=$(echo "${1}" | awk '{print $1}' | sed -e 's/://;s/!/ /;' | awk '{print $1}')
+			bashirc_nick=$(echo "$bashirc_nick" | awk '{print $1}')
+		fi
+	fi
+	echo "$bashirc_nick"
 }
 function type() {
    if [ ! "$bashirc_command" ]; then
@@ -75,5 +77,4 @@ function bot.out() {
       echo "${@}" >> $raw_input
    fi
 }
-
 

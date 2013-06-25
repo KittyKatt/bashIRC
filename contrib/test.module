@@ -1,0 +1,8 @@
+#!/bin/bash
+
+function testme() {
+	nick=$(echo "${input}" | awk '{print $1}' | sed -e 's/://;s/!/ /;' | awk '{print $1}')
+	msg $(dest chan) "$nick Hey, this test was successful, dumbass. $me"
+}
+
+hook=$(fantasy.hook testme testme > /dev/null)

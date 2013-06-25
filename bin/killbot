@@ -3,6 +3,7 @@ echo "Kill bashIRC bots, notice this may also kill your other processes!"
 read -p "Hit enter to continue or Ctrl-C to exit" input
 killall bash
 killall telnet
+killall tail
 rm *input*
 rm .*
 echo "Killed bots sucessfully"

@@ -9,5 +9,6 @@ if [ "$(type)" = "PRIVMSG" ] && [ "$(dest chan)" ]; then
    if [ ! -e ../logs/$raw_input ]; then
       mkdir -p ../logs/$raw_input
    fi
-   echo $(echo "[$(echo $(date) | awk {'print $4'} )] <$(nick)> $(text)") >> ../logs/$raw_input/$(dest chan).txt
+   text=$(text | sed "s/${conf}//")
+   echo $(echo "[$(echo $(date) | awk {'print $4'} )] <$(nick)> ${text}") >> ../logs/$raw_input/$(dest chan).txt
 fi

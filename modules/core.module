@@ -1,0 +1,111 @@
+#!/bin/bash
+
+module_label=$'\x02'"["$'\x032'"Core"$'\x0f\x02'"]"$'\x0f'
+
+$(help.hook "$(fantasy.char)version -- Shows current bot version.") > /dev/null
+$(help.hook "$(fantasy.char)uptime -- Shows current bot uptime.") > /dev/null
+$(help.hook "$(fantasy.char)sauce -- Gives link to current bot source.") > /dev/null
+$(help.hook "$(fantasy.char)shutdown -- Shuts bot down. :|") > /dev/null
+$(help.hook "$(fantasy.char)module [list [loaded|unloaded|all]|load|unload] -- Perform operations on bot modules.") > /dev/null
+
+function bot.shutdown() {
+	if [ "$(hostcheck ${ownerhost})" = "1" ];then
+		eval ../bin/killbot
+	else
+		notice $(nick "${input}") "Who on earth do you think you are?"
+	fi
+}
+
+function bot.uptime() {
+	current_time="$(date +%s)"
+	start_time="$(cat start_time.txt)"
+	uptime=$(($current_time - $start_time))
+	secs=$((${uptime}%60))
+	mins=$((${uptime}/60%60))
+	hours=$((${uptime}/3600%24))
+	days=$((${uptime}/86400))
+	uptime="${secs} seconds"
+	if [ "${mins}" -ne "0" ];then
+		uptime="${mins} minutes, ${uptime}"
+	fi
+	if [ "${hours}" -ne "0" ]; then
+		uptime="${hours} hours, ${uptime}"
+	fi
+	if [ "${days}" -ne "0" ]; then
+		uptime="${days} days, ${uptime}"
+	fi
+	msg $(dest chan) ${module_label}" My current uptime is ${uptime}."
+}
+
+function version.show() {
+	msg $(dest chan) ${module_label}" BashIRC Version ${ver}."
+}
+
+function sauce.show() {
+	msg $(dest chan) ${module_label}" Sauce can be found at SilverIRC's GIT: http://git.silverirc.com/cgit.cgi/bashirc.git/"
+}
+
+function bot.modules() {
+	cmd=$(echo "${@}" | awk '{print $1}')
+	if [ "$cmd" = "load" ]; then
+		if [ "$(hostcheck ${ownerhost})" = "1" ]; then
+			mynewmodule=$(echo "${@}" | awk '{print $2}')
+			if [ -f ../contrib/${mynewmodule}.module ]; then
+				mv ../contrib/${mynewmodule}.module ../modules/
+				msg $(dest chan) ${module_label}" Module loaded successfully."
+			else
+				msg $(dest chan) ${module_label}" Sorry, that module doesn't exist."
+			fi
+		else
+			notice $(nick "${input}") "Would you kindly fuck off?"
+		fi
+	elif [ "$cmd" = "unload" ]; then
+		if [ "$(hostcheck ${ownerhost})" = "1" ]; then
+			mynewmodule=$(echo "${@}" | awk '{print $2}')
+			if [ -f ../modules/${mynewmodule}.module ]; then
+				if [ "${mynewmodule}" = "core" ]; then
+					msg $(dest chan) ${module_label}" You can't unload the core module, you dumbass."
+				else
+					mv ../modules/${mynewmodule}.module ../contrib/
+					msg $(dest chan) ${module_label}" Module unloaded successfully."
+				fi
+			else
+				msg $(dest chan) ${module_label}" Sorry, that module isn't loaded."
+			fi
+		else
+			notice $(nick "${input}") "Would you kindly fuck off?"
+		fi
+	elif [ "$cmd" = "list" ]; then
+		cmd2=$(echo "${@}" | awk '{print $2}')
+		modules_loaded=$(ls ../modules/ | tr '\n' ',' | sed -e 's/,/, /g' -e 's/.module//g' | rev | cut -c 3- | rev)
+		modules_unloaded=$(ls ../contrib/ | tr '\n' ',' | sed -e 's/,/, /g' -e 's/.module//g' | rev | cut -c 3- | rev)
+		if [ "$cmd2" = "loaded" ]; then
+			msg $(dest chan) ${module_label}" Loaded Modules: ${modules_loaded}."
+		elif [ "$cmd2" = "unloaded" ]; then
+			msg $(dest chan) ${module_label}" Unloaded Modules: ${modules_unloaded}."
+		elif [ "$cmd2" = "all" ]; then
+			msg $(dest chan) ${module_label}" ( Loaded Modules: ${modules_loaded} ) ( Unloaded Modules: ${modules_unloaded} )"
+		fi
+	fi
+}
+
+hook=$(fantasy.hook version version.show > /dev/null)
+hook=$(fantasy.hook sauce sauce.show > /dev/null)
+hook=$(fantasy.hook module bot.modules > /dev/null)
+hook=$(fantasy.hook shutdown bot.shutdown > /dev/null)
+hook=$(fantasy.hook uptime bot.uptime > /dev/null)
+
+#Autojoin on invite.
+if [ "$(type)" = "INVITE" ]; then
+	#Alternative, check if nick who invited was owner or w/e
+	nick=$(echo "$input" | awk '{print $1}')
+	nick=$(echo "$nick" | sed -e 's/^://' -e 's/!~.*//')
+	if [ "$nick" == "$owner" ]; then
+		chan=$(echo "$input" | awk '{print $4}')
+		chan=$(echo "$chan" | sed -e 's/://g')
+		$(bot.out "JOIN $chan")
+		if [ ! -e "~/services/$chan" ]; then
+			echo "" > "~/services/$chan"
+		fi
+	fi
+fi

@@ -1,10 +1,11 @@
 #!/bin/bash
-ver="$(cat ~/bashIRC/VERSION)"
+ver="1.1.0"
 export ver
 derp=$(echo "${@}" | awk '{print $NF}')
 source "../etc/$derp"
 input=${@}
 input=${input#* }
+input=$(echo "$input" | sed "s/ ${conf}//")
 raw_input=$(echo "${@}" | awk '{print $1}')
 rm /tmp/.bashirc/help
 if [ ! -e "/tmp/.bashirc" ]; then
@@ -20,6 +21,14 @@ fi
 for i in $(ls ../lib); do
 	source ../lib/$i
 done
+
+# Ignores
+nick=$(echo "${input}" | awk '{print $1}' | sed -e 's/://;s/!/ /;' | awk '{print $1}' 2>/dev/null)
+ignorelist=$(cat ../staticfiles/ignores 2>/dev/null)
+if [[ "${ignorelist}" =~ "${nick}" ]]; then
+	input=""
+fi
+
 #Module system
 if [ "$loadallmodules" = "yes" ]; then
    for i in $(ls ../modules | grep ".module"); do
@@ -30,6 +39,7 @@ else
       source ../modules/$i.module
    done
 fi
-#Our help command :)
-#hook=$(fantasy.hook help help.show > /dev/null)
+
+# Our help command :)
+# hook=$(fantasy.hook help help.show > /dev/null)
 

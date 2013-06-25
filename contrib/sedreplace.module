@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+if [ "$(type)" = "PRIVMSG" ] && [ "$(dest chan)" ]; then
+
+        text=$(text | sed "s/${conf}//")
+        cmd=$(text | awk '{print $1}')
+
+        if [ `echo "$text" | grep -E '^s/.*/.*/[g]?$'` ]; then
+                echo "rawr" > /tmp/rawr
+                string1=$(echo "$text" | awk -F'/' '{print $2}')
+                string2=$(echo "$text" | awk -F'/' '{print $3}')
+                if [ `echo "$text" | awk -F'/' '{print $4}'` = "g" ]; then multireplace="$
+
+                slap=$(echo -n "${server}" | sed -e 's/\.//g')
+                # msg $(dest chan) 'grep ":'$nick'" '${slap}'.input.output'
+                lastline=$(grep ":$nick" ${slap}.input.output | grep -v ":$(fantasy.char)$
+                lastline=$(echo "$lastline" | tail -n1)
+                lastline=$(echo "$lastline" | awk -F':' '{print $3}')
+
+                if [ "$multireplace" == "1" ]; then newstring=$(echo "$lastline" | sed "s$
+                else newstring=$(echo "$lastline" | sed "s/$string1/$string2/g"); fi
+
+                msg $(dest chan) "What $nick meant to say was: \"$newstring\""
+        fi
+
+fi

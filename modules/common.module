@@ -1,0 +1,99 @@
+#!/bin/bash
+
+$(help.hook "$(fantasy.char)ping -- Pings you. Duh.") > /dev/null
+$(help.hook "$(fantasy.char)rand [?num] -- Displays random number (ceiling of 32767) with an option argument for ceiling.") > /dev/null
+$(help.hook "$(fantasy.char)math [expression] -- Does simple math expressions.") > /dev/null
+$(help.hook "$(fantasy.char)ignore [nick] -- Adds [nick] to the bot's ignore list.") > /dev/null
+$(help.hook "$(fantasy.char)unignore [nick] -- Deletes [nick] from the bot's ignore list.") > /dev/null
+$(help.hook "$(fantasy.char)ignore -- Lists all nicks the bot is currently ignoring.") > /dev/null
+
+function pingme() {
+	msg $(dest chan) "${nick}: pong!"
+}
+
+function randnum() {
+	continue
+}
+
+function domath() {
+	continue
+}
+
+function add.ignore() {
+	if [ "$(hostcheck ${ownerhost})" = "1" ]; then
+		ignore_nick="${1}"
+		ignored_nicks=$(cat ../staticfiles/ignores 2> /dev/null)
+		if [[ "${ignored_nicks}" =~ "${ignore_nick}" ]]; then
+			break
+		else
+			echo "${ignore_nick}" >> ../staticfiles/ignores
+		fi
+	fi
+}
+
+function del.ignore() {
+	if [ "$(hostcheck ${ownerhost})" = "1" ]; then
+		unignore_nick="${1}"
+		ignored_nicks=$(cat ../staticfiles/ignores 2> /dev/null)
+		if [[ "${ignored_nicks}" =~ "${ignore_nick}" ]]; then
+			sed -ie "s/${unignore_nick}//" ../staticfiles/ignores
+		else
+			break
+		fi
+	fi
+}
+
+function list.ignore() {
+	ignored_nicks=$(cat ../staticfiles/ignores 2> /dev/null | tr '\n' ' ')
+	msg $(dest chan) "I am currently ignoring the following nicks: ${ignored_nicks}"
+}
+
+hook=$(fantasy.hook ping pingme > /dev/null)
+hook=$(fantasy.hook rand randnum > /dev/null)
+hook=$(fantasy.hook math domath > /dev/null)
+hook=$(fantasy.hook ignore add.ignore > /dev/null)
+hook=$(fantasy.hook unignore del.ignore > /dev/null)
+hook=$(fantasy.hook ignores list.ignore > /dev/null)
+
+
+if [ "$(type)" = "PRIVMSG" ] && [ "$(dest chan)" ]; then
+
+	text=$(text | sed "s/${conf}//")
+	cmd=$(text | awk '{print $1}')
+
+	nick=$(echo "${input}" | awk '{print $1}' | sed -e 's/://;s/!/ /;' | awk '{print $1}')
+
+	# MATH!!1!
+	if [ "$cmd" = "$(fantasy.char)math" ]; then
+		module_label=$'\x02'"["$'\x032'"Math"$'\x0f\x02'"]"$'\x0f'
+		my_expression=$(echo "$text" | sed "s/$(fantasy.char)math //")
+		my_answer=$((${my_expression}))
+		msg $(dest chan) ${module_label}" Answer = ${my_answer} (for \" ${my_expression}\")"
+	fi
+	# Random number generator
+	if [ "$cmd" = "$(fantasy.char)rand" ];then
+		my_randrange=$(echo "$text" | awk '{print $2}')
+		if [ -n "$my_randrange" ]; then msg $(dest chan) "$[RANDOM%my_randrange+1]"
+		else msg $(dest chan) "$[RANDOM+1]"; fi
+		fi
+	fi
+
+	# Respont to .bots
+	if [ "$cmd" = ".bots" ]; then
+		msg $(dest chan) "Reporting in! [Shell]"
+	fi
+
+	# Ping me?
+	if [[ "$text" =~ "$bashirc_me: ping" ]]; then
+		pingme
+	fi
+
+	if [ "$cmd" = "$(fantasy.char)pong" ]; then
+		msg $(dest chan) "Uh...ping? .-."
+	fi
+fi
+
+
+if [ "$(type)" = "JOIN" ] && [ "$(nick "${input}")" = "KittyKatt" ]; then
+	msg $(dest chan) "ohai"
+fi

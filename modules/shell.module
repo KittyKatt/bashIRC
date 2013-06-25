@@ -1,0 +1,17 @@
+#!/bin/bash
+
+$(help.hook "$(fantasy.char)shell [command] -- Execute shell commands!") > /dev/null
+
+function shell.do() {
+        if [ "$(hostcheck ${ownerhost})" = "1" ]; then
+                text=$(text)
+                echo "$(eval ${text#* } )" > /tmp/stuff
+                while read lol; do
+                        msg $(dest chan) "$lol"
+                done < /tmp/stuff
+        else
+                notice $(nick "${input}") "Would you kindly please fuck off?"
+        fi
+}
+
+hook=$(fantasy.hook shell shell.do > /dev/null)

@@ -1,0 +1,24 @@
+#!/bin/bash
+
+module_label=$'\x02'"["$'\x032'"Weather"$'\x0f\x02'"]"$'\x0f'
+
+$(help.hook "$(fantasy.char)weather [zipcode|station] -- Displays current weather for location.") > /dev/null
+
+function show_weather() {
+	# What's the weather? CLOUDY WITH A CHANCE OF BASH!
+	my_location=$(echo "$1" | awk '{print $1}')
+	if [ `echo "$my_location" | grep -E "^[0-9]+$"` ]; then
+		curl_out=$(curl -sL "http://weather.weatherbug.com/Common/SearchResults.html?is_search=true&nav_section=1&loc_country=WORLD&zcode=z6286&loc=$my_location")
+		weather_loc=$(echo "$curl_out" | grep -Eo "<h2>[A-Za-z]*\, [A-Z][A-Z] [0-9]*</h2>" | sed -e 's/<h2>//' -e 's/<\/h2>//')
+		weather_conditions=$(echo "$curl_out" | grep 'local-forecast/detailed-forecast.html?zcode=z6286" rel="nofollow">more</a>' | head -n 1 | sed -e 's/\t                <p>//' -e 's/&hellip;.*//')
+		weather_dewpoint=$(echo "$curl_out" | grep -Eo 'id="divDewPoint">[0-9]+&deg;F</span></div>' | sed -e 's/id="divDewPoint">//' -e 's/&deg;F<\/span><\/div>//')
+		weather_temp=$(echo "$curl_out" | grep -Eo 'id="divTemp" class="entry-title">[0-9]+.[0-9]&deg;F</span></strong></div>' | sed -e 's/id="divTemp" class="entry-title">//' -e 's/&deg;F<\/span><\/strong><\/div>//')
+		weather_windchill=$(echo "$curl_out" | grep -Eo '<span id="divFeelsLike">[0-9]+[.]?[0-9]?&deg;F</span></div>' | sed -e 's/<span id="divFeelsLike">//' -e 's/&deg;F<\/span><\/div>//')
+		weather_humidity=$(echo "$curl_out" | grep -Eo 'id="divHumidity">[0-9]+%</span></div>' | sed -e 's/id="divHumidity">//' -e 's/<\/span><\/div>//')
+		msg $(dest chan) ${module_label}" "$'\x032'"${weather_loc}"$'\x0f'" ( Temp: ${weather_temp}°F. Conditions: \"${weather_conditions}\" Humidity: ${weather_humidity}. Dew Point: ${weather_dewpoint}°F. Windchill: ${weather_windchill}°F. )"
+	else
+		echo "LOC = $my_location. I don't support that yet. Sorry. :<"
+	fi
+}
+
+hook=$(fantasy.hook weather show_weather > /dev/null)

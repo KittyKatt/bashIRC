@@ -1,0 +1,24 @@
+#!/bin/bash
+#Sample module for bashIRC 0.4
+
+# $(help.hook "$(fantasy.char)lmg <stuff> -- Googles stuff for you") > /dev/null
+# $(help.hook "$(fantasy.char)say <some stuff> -- Say that some stuff for you :p") > /dev/null
+#function say() {
+#	msg $(dest) "${@}"
+#}
+
+#function lmg() {
+#	if [ "${@}" ]; then
+#		my_query=$(echo "${@}" | sed 's/bashIRC.conf//')
+#		msg $(dest) "Query: ${my_query}"
+#		msg $(dest) $(curl "http://is.gd/api.php?longurl=http://lmgtfy.com/?q=${my_query}")
+#	fi
+#}
+#function fuck() {
+#	msg $(dest) "Fuck off $(nick "${input}"), stop spamming me"
+#}
+
+#Hook onto fantasy.
+# hook=$(fantasy.hook lmg lmg > /dev/null)
+# hook=$(fantasy.hook say say > /dev/null)
+#hook=$(fantasy.flood say 3 2 fuck > /dev/null)

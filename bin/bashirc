@@ -31,6 +31,7 @@ else
    fi
    conf=${fail[$no]}
 fi
+export conf
 source "../etc/$conf"
 # setting chanprefix
 chanprefix_o="@"
@@ -102,7 +103,11 @@ for i in ${@}; do
 done
 identified="no"
 echo "NICK $me" > $slap
-echo "USER $user +iw$bot $me :$0" >> $slap
+echo "USER $user +iw${botmode} $me :$realname" >> $slap
+
+bot_starttime="$(date +%s)"
+echo "${bot_starttime}" > start_time.txt
+
 if [ "$nohup" = "1" ]; then
    nohup ./core "$slap" "$server" "$port" "$conf" &disown
    echo "Bot runned sucessfully"

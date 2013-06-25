@@ -1,0 +1,41 @@
+#!/bin/bash
+
+module_label=$'\x02'"["$'\x032'"Config"$'\x0f\x02'"]"$'\x0f'
+
+$(help.hook "$(fantasy.char)config [var] [?value] -- Displays information on a user's repositories or a specific repository.") > /dev/null
+
+config_set () {
+	if [ "$(hostcheck ${ownerhost})" = "1" ]; then
+		mystring=$(echo "${@}" | sed "s/${conf}//")
+		configvar=$(echo "$mystring" | awk '{print $1}')
+		configvalue=$(echo "$mystring" | awk '{print $2}')
+		cmdtoomany=$(echo $mystring | awk '{print $3}')
+		if [ -n "$configvar" ]; then
+			if [[ "$configvar" == "rehash" ]]; then
+				source ../etc/${conf}
+				msg $(dest chan) ${module_label}" Config sucessfully rehashed!"
+			else
+				if [ -n "$configvalue" ];then
+					if [ "$cmdtoomany" ]; then msg $(dest chan) ${module_label}" That's too many arguments. Please see @help config config."
+					else
+						set_value=$(echo "${configvalue}" | sed 's/#/\#/g;s/\//\\\//g')
+						# msg $(dest chan) "${set_value}"
+						cp ../etc/${conf} ../etc/${conf}.tmp
+						newconfig=$(sed -e "s/${configvar}=\".*\"/${configvar}=\"${set_value}\"/g" ../etc/${conf} > ../etc/${conf}.tmp)
+						mv ../etc/${conf}.tmp ../etc/${conf}
+						source ../etc/${conf}
+						struct_configinfo="Config variable ${configvar} set:  ${configvalue}"$'\x0f'"."
+						msg $(dest chan) ${module_label}" $struct_configinfo"
+					fi
+				else
+					set_value=$(grep -E "^$configvar=" ../etc/${conf} | sed "s/${configvar}=\"//;s/\"$//")
+					msg $(dest chan) ${module_label}" \$$configvar currently set as \"$set_value\"."
+				fi
+			fi
+		fi
+	else
+                notice $(nick "${input}") "Would you kindly please fuck off?"
+        fi
+}
+
+hook=$(fantasy.hook config config_set > /dev/null)

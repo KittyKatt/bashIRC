@@ -1,0 +1,150 @@
+#!/bin/bash
+#by Splintr
+
+$(help.hook "$(fantasy.char)owner [nick] -- owners [nick]") > /dev/null
+$(help.hook "$(fantasy.char)deowner [nick] -- deowners [nick]") > /dev/null
+$(help.hook "$(fantasy.char)admin [nick] -- admins [nick]") > /dev/null
+$(help.hook "$(fantasy.char)deadmin [nick] -- deadmins [nick]") > /dev/null
+$(help.hook "$(fantasy.char)op [nick] -- ops [nick]") > /dev/null
+$(help.hook "$(fantasy.char)deop [nick] -- deops [nick]") > /dev/null
+$(help.hook "$(fantasy.char)hop [nick] -- hops [nick]") > /dev/null
+$(help.hook "$(fantasy.char)dehop [nick] -- dehops [nick]") > /dev/null
+$(help.hook "$(fantasy.char)voice [nick] -- voices [nick]") > /dev/null
+$(help.hook "$(fantasy.char)devoice [nick] -- devoices [nick]") > /dev/null
+$(help.hook "$(fantasy.char)ban [nick] <reason> -- bans [nick] for <reason>") > /dev/null
+$(help.hook "$(fantasy.char)unban [nick] -- unbans [nick]") > /dev/null
+$(help.hook "$(fantasy.char)mute -- Mutes current channel") > /dev/null
+$(help.hook "$(fantasy.char)unmute -- Unmutes current channel") > /dev/null
+$(help.hook "$(fantasy.char)kick [nick] <reason> -- kicks [nick] for <reason>") > /dev/null
+function mode_q() {
+      if [ "$(hostcheck ${ownerhost})" = "1" ]; then
+         mynicks=$(echo "${@}" | sed "s/${conf}//")
+	 echo $(bot.out "mode $(dest chan) +qqq ${mynicks}")
+      else
+	 notice $(nick "${input}") Fuck off!
+      fi
+}
+function rem_mode_q() {
+      if [ "$(hostcheck ${ownerhost})" = "1" ]; then
+         mynicks=$(echo "${@}" | sed "s/${conf}//")
+	 echo $(bot.out "mode $(dest chan) -qqq ${mynicks}")
+      else
+	 notice $(nick "${input}") Fuck off!
+      fi
+}
+function mode_a() {
+      if [ "$(hostcheck ${ownerhost})" = "1" ]; then
+	 echo $(bot.out "mode $(dest chan) +aaa ${mynicks}")
+      else
+	 notice $(nick "${input}") Fuck off!
+      fi
+}
+function rem_mode_a() {
+      if [ "$(hostcheck ${ownerhost})" = "1" ]; then
+         mynicks=$(echo "${@}" | sed "s/${conf}//")
+	 echo $(bot.out "mode $(dest chan) -aaa ${mynicks}")
+      else
+	 notice $(nick "${input}") Fuck off!
+      fi
+}
+function mode_o() {
+      if [ "$(hostcheck ${ownerhost})" = "1" ]; then
+         mynicks=$(echo "${@}" | sed "s/${conf}//")
+	 echo $(bot.out "mode $(dest chan) +ooo ${mynicks}")
+      else
+	 notice $(nick "${input}") Fuck off!
+      fi
+}
+function rem_mode_o() {
+     if [ "$(hostcheck ${ownerhost})" = "1" ]; then
+         mynicks=$(echo "${@}" | sed "s/${conf}//")
+	 echo $(bot.out "mode $(dest chan) -ooo ${mynicks}")
+      else
+	 notice $(nick "${input}") Fuck off!
+      fi
+}
+function mode_h() {
+      if [ "$(hostcheck ${ownerhost})" = "1" ]; then
+         mynicks=$(echo "${@}" | sed "s/${conf}//")
+	 echo $(bot.out "mode $(dest chan) +hhh ${mynicks}")
+      else
+	 notice $(nick "${input}") Fuck off!
+      fi
+}
+function rem_mode_h() {
+      if [ "$(hostcheck ${ownerhost})" = "1" ]; then
+         mynicks=$(echo "${@}" | sed "s/${conf}//")
+	 echo $(bot.out "mode $(dest chan) -hhh ${mynicks}")
+      else
+	 notice $(nick "${input}") Fuck off!
+      fi
+}
+function mode_v() {
+      if [ "$(hostcheck ${ownerhost})" = "1" ]; then
+         mynicks=$(echo "${@}" | sed "s/${conf}//")
+	 echo $(bot.out "mode $(dest chan) +vvv ${mynicks}")
+      else
+	 notice $(nick "${input}") Fuck off!
+      fi
+}
+function rem_mode_v() {
+      if [ "$(hostcheck ${ownerhost})" = "1" ]; then
+         mynicks=$(echo "${@}" | sed "s/${conf}//")
+	 echo $(bot.out "mode $(dest chan) -vvv ${mynicks}")
+      else
+	 notice $(nick "${input}") Fuck off!
+      fi
+}
+function mode_m() {
+      if [ "$(hostcheck ${ownerhost})" = "1" ]; then
+	 echo $(bot.out "mode $(dest chan) +m")
+      else
+	 notice $(nick "${input}") Fuck off!
+      fi
+}
+function rem_mode_m() {
+   if [ "$(hostcheck ${ownerhost})" = "1" ]; then
+	 echo $(bot.out "mode $(dest chan) -m")
+      else
+	 notice $(nick "${input}") Fuck off!
+      fi
+}
+function mode_b() {
+  if [ "$(hostcheck ${ownerhost})" = "1" ]; then
+         mynicks=$(echo "${@}" | sed "s/${conf}//")
+	 echo $(bot.out "mode $(dest chan) +bbb ${mynicks}")
+      else
+	 notice $(nick "${input}") Fuck off!
+      fi
+}
+function rem_mode_b() {
+  if [ "$(hostcheck ${ownerhost})" = "1" ]; then
+         mynicks=$(echo "${@}" | sed "s/${conf}//")
+	 echo $(bot.out "mode $(dest chan) -bbb ${mynicks}")
+      else
+	 notice $(nick "${input}") Fuck off!
+      fi
+}
+function kick() {
+  if [ "$(hostcheck ${ownerhost})" = "1" ]; then
+         mynick=$(echo "${@}" | sed "s/${conf}//")
+	 echo $(bot.out "PRIVMSG ChanServ :kick $(dest) ${mynick}")
+      else
+	 notice $(nick "${input}") Fuck off!
+      fi
+}
+hook=$(fantasy.hook owner mode_q > /dev/null)
+hook=$(fantasy.hook deowner rem_mode_q > /dev/null)
+hook=$(fantasy.hook admin mode_a > /dev/null)
+hook=$(fantasy.hook deadmin rem_mode_a > /dev/null)
+hook=$(fantasy.hook op mode_o > /dev/null)
+hook=$(fantasy.hook deop rem_mode_o > /dev/null)
+hook=$(fantasy.hook hop mode_h > /dev/null)
+hook=$(fantasy.hook dehop rem_mode_h > /dev/null)
+hook=$(fantasy.hook voice mode_v > /dev/null)
+hook=$(fantasy.hook devoice rem_mode_v > /dev/null)
+hook=$(fantasy.hook mute mode_m > /dev/null)
+hook=$(fantasy.hook unmute rem_mode_m > /dev/null)
+hook=$(fantasy.hook ban mode_b > /dev/null)
+hook=$(fantasy.hook unban rem_mode_b > /dev/null)
+hook=$(fantasy.hook kick kick > /dev/null)

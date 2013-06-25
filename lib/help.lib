@@ -1,10 +1,10 @@
 #!/bin/bash
 function help.show() {
-   notice $(nick) "$me""'s help"
+   notice $(nick "${input}") "$bot.me""'s help"
    while read help; do
-      notice $(nick) "$help"
+      notice $(nick "${input}") "$help"
    done < /tmp/.bashirc/help
-   notice $(nick) "$(wc -l /tmp/.bashirc/help | awk '{print $1}') help showed."
+   notice $(nick "${input}") "$(wc -l /tmp/.bashirc/help | awk '{print $1}') help showed."
 }
 function help.hook() {
    #Hooks onto help

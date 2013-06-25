@@ -1,0 +1,35 @@
+#!/bin/bash
+#by Splintr
+function action_chan() {
+      if [ "$(nick)" = "$owner" ]; then
+	 comd=$(text | awk '{print $1}')
+	 msg=$(text | sed "s/$comd //")
+	 echo $(bot.out "PRIVMSG $(dest chan) :ACTION $msg")
+      else
+         notice $(nick) "Fuck off!"
+      fi
+}
+function action_dest() {
+      if [ "$(nick)" = "$owner" ]; then
+	 comd=$(text | awk '{print $1}')
+	 who=$(text | awk '{print $2}')
+	 msg=$(text | sed "s/$who //" | sed "s/$comd //")
+	 echo $(bot.out "PRIVMSG $who :ACTION $msg")
+      else
+         notice $(nick) "Fuck off!"
+      fi
+}
+function msg_dest() {
+      if [ "$(nick)" = "$owner" ]; then
+	 comd=$(text | awk '{print $1}')
+	 who=$(text | awk '{print $2}')
+	 msg=$(text | sed "s/$who //" | sed "s/$comd //")
+         echo $(bot.out "PRIVMSG $who :$msg")
+      else
+         notice $(nick) "Fuck off!"
+      fi
+}
+
+hook=$(fantasy.hook me action_chan > /dev/null)
+hook=$(fantasy.hook mec action_dest > /dev/null)
+hook=$(fantasy.hook msg msg_dest > /dev/null)

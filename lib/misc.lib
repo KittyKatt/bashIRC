@@ -3,31 +3,35 @@
 #Removing this module = fail :(
 #IRC tracking stuff.
 #Track nick changes on $(me)
-if [ "$(type)" = "NICK" ] && [ "$(nick)" = "$(me)" ]; then
-   #Get new nick
-   bashirc_me=$(text)
+if [ "$(type)" = "NICK" ] && [ "$(nick "${input}")" = "$(me)" ]; then
+	#Get new nick
+	bashirc_me=$(text | sed "s/${conf}//")
 fi
 
 if [ "$(type)" = "376" ]; then #376 is End of MOTD command
-   if [ "$nspass" ]; then
-      if [ ! -e  "/tmp/.bashirc/con_identify" ]; then
-         msg nickserv "identify $nspass"
-         echo "o.o" > /tmp/.bashirc/con_identify
-      fi
-   fi
-   if [ ! -e "/tmp/.bashirc/con_join" ]; then
-      for i in "$channel"; do
-         bot.out "JOIN $i"
-      done
-      echo "o.o" > /tmp/con_join
-   fi
+	if [ "$nspass" ]; then
+		if [ ! -e  "/tmp/.bashirc/con_identify" ]; then
+			msg nickserv "identify $nspass"
+			echo "o.o" > /tmp/.bashirc/con_identify
+		fi
+	fi
+	if [ ! -e "/tmp/.bashirc/con_join" ]; then
+		for i in "$channel"; do
+			bot.out "JOIN $i"
+		done
+		echo "o.o" > /tmp/con_join
+	fi
 fi
-#CTCP Stuff below
+
+############################
+# CTCP Responses block
+############################
+
 if [ "$(type)" = "PRIVMSG" ] && [ "$(dest nick)" ]; then
-   cmd=$(echo "$(text)" | awk '{print $1}')
-   if [ "$cmd" = $'\001VERSION\001' ]; then
-      notice $(nick) "VERSION ttwj bashIRC library $ver"
-      elif [ "$cmd" = $'\001TIME\001' ]; then
-      notice $(nick) "TIME $(date)"
-   fi
+	cmd=$(echo "$(text)" | awk '{print $1}')
+	if [ "$cmd" = $'\001VERSION\001' ]; then
+		notice $(nick "${input}") $'\001VERSION I am a shell script, what do you want from me?\001'
+	elif [ "$cmd" = $'\001TIME\001' ]; then
+		notice $(nick "${input}") "TIME $(date)"
+	fi
 fi

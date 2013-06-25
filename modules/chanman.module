@@ -1,0 +1,49 @@
+#!/bin/bash
+
+$(help.hook "$(fantasy.char)join [channel] -- Joins channel.") > /dev/null
+$(help.hook "$(fantasy.char)part [channel] -- Parts channel.") > /dev/null
+$(help.hook "$(fantasy.char)cycle -- Cycles current channel.") > /dev/null
+$(help.hook "$(fantasy.char)quit [?message] -- Quits with optional message.") > /dev/null
+$(help.hook "$(fantasy.char)nick [nick] -- Changes bot's nick.") > /dev/null
+
+function jchan() {
+if [ "$(hostcheck ${ownerhost})" = "1" ];then
+    mychan=$(echo "${@}" | sed "s/${conf}//")
+    $(bot.out "JOIN ${mychan}")
+fi
+}
+function pchan() {
+if [ "$(hostcheck ${ownerhost})" = "1" ];then
+    mychan=$(echo "${@}" | sed "s/${conf}//")
+    $(bot.out "PART ${mychan}")
+fi
+}
+function cycle() {
+if [ "$(hostcheck ${ownerhost})" = "1" ];then
+    sleep 1
+    $(bot.out "PART $(dest)")
+    sleep 1
+    $(bot.out "JOIN $(dest)")
+fi
+}
+function quit() {
+if [ "$(hostcheck ${ownerhost})" = "1" ];then
+    myquitmsg=$(echo "${@}" | sed "s/${conf}//")
+    $(bot.out "QUIT ${myquitmsg}")
+fi
+}
+function mynick() {
+if [ "$(hostcheck ${ownerhost})" = "1" ];then
+     mynick=$(echo "${@}" | sed "s/${conf}//")
+     $(bot.out "NICK ${mynick}")
+fi
+}
+#function ident() {
+#     $(bot.out "PRIVMSG NICKSERV :identify $botnick $nspass")
+#}
+hook=$(fantasy.hook join jchan > /dev/null)
+hook=$(fantasy.hook part pchan > /dev/null)
+hook=$(fantasy.hook cycle cycle > /dev/null)
+hook=$(fantasy.hook quit quit > /dev/null)
+hook=$(fantasy.hook mynick nick > /dev/null)
+#hook=$(fantasy.hook ident ident > /dev/null)

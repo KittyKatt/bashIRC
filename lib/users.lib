@@ -32,8 +32,8 @@ if [ "$(type)" = "MODE" ] && [ "$(dest chan)" ]; then
    mv "/tmp/.bashirc/$raw_input$(dest)" "/tmp/.bashirc/$raw_input$(dest)"
 fi
 if [ "$(type)" = "PART" ] && [ "$(dest chan)" ]; then
-   if [ "$(cat "/tmp/.bashirc/$(dest)" | grep "$(nick)")" ]; then
-      sed -e "s/\(.*\)$(nick)//" "/tmp/.bashirc/$raw_input$(dest)" > /tmp/.bashirc/".$(dest)"
+   if [ "$(cat "/tmp/.bashirc/$(dest)" | grep "$(nick "${input}")")" ]; then
+      sed -e "s/\(.*\)$(nick "${input}")//" "/tmp/.bashirc/$raw_input$(dest)" > /tmp/.bashirc/".$(dest)"
       mv /tmp/.bashirc/".$(dest)" /tmp/.bashirc/"$raw_input$(dest)"
    fi
 fi
@@ -43,7 +43,7 @@ if [ "$(type)" = "KICK" ] && [ "$(dest chan)" ]; then
 	bot.in "NAMES $(dest chan)"
 fi
 if [ "$(type)" = "JOIN" ] && [ "$(dest chan)" ]; then
-   echo "$(nick)" >> "/tmp/.bashirc/$raw_input$(dest)"
+   echo "$(nick "${input}")" >> "/tmp/.bashirc/$raw_input$(dest)"
 fi
 function user.ison() {
    #user.ison <nick> <chan>
@@ -123,15 +123,15 @@ function user.ignore() {
    if [ -e "/tmp/.bashirc/perm" ]; then
       mkdir /tmp/.bashirc/perm
    fi
-   if [ -z "$(cat /tmp/.bashirc/perm/ignore | grep "$(nick)$(host)")" ]; then
-      echo "$(nick)$(host)" >> /tmp/.bashirc/perm/ignore
+   if [ -z "$(cat /tmp/.bashirc/perm/ignore | grep "$(nick "${input}")$(host)")" ]; then
+      echo "$(nick "${input}")$(host)" >> /tmp/.bashirc/perm/ignore
       echo 1
    else
       echo 0
    fi
 }
 function user.unignore() {
-   brix=$(cat /tmp/.bashirc/perm/ignore | grep "$(nick)$(host)")
+   brix=$(cat /tmp/.bashirc/perm/ignore | grep "$(nick "${input}")$(host)")
    if [ "$brix" ]; then
       new=$(sed -e "s/$brix//" /tmp/.bashirc/perm/ignore > /tmp/.bashirc/.ignore)
       mv /tmp/.bashirc/.ignore /tmp/.bashirc/perm/ignore

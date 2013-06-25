@@ -1,0 +1,81 @@
+#!/bin/bash
+
+module_label=$'\x02'"["$'\x032'"GitHub"$'\x0f\x02'"]"$'\x0f'
+
+$(help.hook "$(fantasy.char)github [username] [?repo] -- Displays information on a user's repositories or a specific repository.") > /dev/null
+
+github_repo_info () {
+	mystring=$(echo "${@}" | sed "s/${conf}//")
+	string=$(echo $mystring | sed -e 's/\// /;s/://')
+	user=$(echo $string | awk '{print $1}')
+	repo=$(echo $string | awk '{print $2}')
+	cmdtoomany=$(echo $string | awk '{print $3}')
+	if [ -n "$user" ]; then
+		if [ -n "$repo" ];then
+			if [ "$cmdtoomany" ]; then msg $(dest chan) ${module_label}" That's too many arguments. Please see @help github github."
+			else
+				base="https://api.github.com/repos"
+				repo_info="$user/$repo"
+				repo_api_ret=$(curl -H "Authorization: token ${github_oauthkey}" -s $base/$repo_info)
+				if [[ "$repo_api_ret" =~ "\"message\": \"Not Found\"" ]]; then msg $(dest chan) ${module_label}" Repository not found."
+				else
+					repo_name=$(echo "$repo_api_ret" | grep '.*"name":' | sed -e 's/.*"name": "//' -e 's/",$//')
+					repo_description=$(echo "$repo_api_ret" | grep '.*"description":' | sed -e 's/.*"description": "//' -e 's/",$//')
+					if [ "${#repo_description}" -gt "117" ]; then
+						repo_description="${repo_description:0:116}"
+						repo_description="${repo_description}..."
+					fi
+					repo_watchers=$(echo "$repo_api_ret" | grep '.*"watchers":' | sed -e 's/.*"watchers": //' -e 's/,$//')
+					repo_forks=$(echo "$repo_api_ret" | grep '.*"forks":' | sed -e 's/.*"forks": //' -e 's/,$//')
+					repo_open_issues=$(echo "$repo_api_ret" | grep '.*"open_issues_count":' | sed -e 's/.*"open_issues_count": //' -e 's/,$//')
+					repo_url=$(echo "$repo_api_ret" | grep '.*"html_url":' | sed -e 's/.*"html_url": "//' -e 's/,$//')
+					repo_language=$(echo "$repo_api_ret" | grep '.*"language":' | sed -e 's/.*"language": "//' -e 's/",$//')
+					if [ "$repo_language" == "null" ]; then repo_language="Unknown"; fi
+					struct_repoinfo=$'\x02'"$repo_name:"$'\x0f'" ${repo_description:-No description given.} [ "$'\x032'"Watchers: $repo_watchers "$'\x0f'"| "$'\x033'"Forks: $repo_forks "$'\x0f'"| "$'\x034'"Open Issues: $repo_open_issues"$'\x0f'" ] ( "$'\x0312'"${repo_language}"$'\x0f'" )"
+					msg $(dest chan) ${module_label}" $struct_repoinfo"
+				fi
+			fi
+		else
+			base="https://api.github.com/users"
+			user_api_ret=$(curl -H "Authorization: token ${github_oauthkey}" -s "${base}/${user}/repos?sort=pushed")
+			if [[ "$user_api_ret" =~ "\"message\": \"Not Found\"" ]]; then msg $(dest chan) ${module_label}" User not found."
+			else
+				user_numrepos=$(echo "$user_api_ret" | grep '  {' | wc -l)
+				if [ "$user_numrepos" -gt "3" ]; then
+					toomanyrepos="1"
+					user_reposleft=$(echo "$user_numrepos -3" | bc)
+					echo "$user_repos_left"
+				fi
+				msg $(dest chan) ${module_label}" $user has $user_numrepos repos."
+				user_api_ret=$(echo "$user_api_ret" | sed -e 's/    "//g' -e 's/": "/: /g' -e 's/": /: /g' -e 's/",$//g' -e 's/,$//g')
+				OLDIFS=$IFS
+				IFS=$'\n'
+				for lol in $(echo "$user_api_ret" | grep "^name: " | head -n3); do
+					_subret=$(echo "$user_api_ret" | grep -A 13 -B 64 "$lol")
+					repo_name=$(echo "$_subret" | grep '^name: ' | sed 's/^name: //')
+					repo_description=$(echo "$_subret" | grep '^description: ' | sed 's/^description: //')
+					if [ "${#repo_description}" -gt "117" ]; then
+						repo_description="${repo_description:0:116}"
+						repo_description="${repo_description}..."
+					fi
+					repo_watchers=$(echo "$_subret" | grep '^watchers: ' | sed -e 's/^watchers: //')
+					repo_forks=$(echo "$_subret" | grep '^forks: ' | sed -e 's/^forks: //')
+					repo_open_issues=$(echo "$_subret" | grep '^open_issues_count: ' | sed -e 's/^open_issues_count: //')
+					repo_language=$(echo "$_subret" | grep '^language: ' | sed -e 's/^language: //')
+					if [ "$repo_language" == "null" ]; then repo_language="Unknown"; fi
+					struct_user_repos=$(echo " (${repo_name}) ${repo_description} [${repo_watchers}w|${repo_forks}f|${repo_open_issues}i] (${repo_language})")
+					msg $(dest chan) ${module_label}$'\x02'" ${repo_name} "$'\x0f'"${repo_description:-No description given.} ["$'\x032'" ${repo_watchers}w"$'\x0f'" |"$'\x033'" ${repo_forks}f"$'\x0f'" |"$'\x035'" ${repo_open_issues}i"$'\x0f'" ] ("$'\x0312'"${repo_language}"$'\x0f'")"
+				done
+				IFS=$OLDIFS
+				if [ -n "$toomanyrepos" ]; then
+					user_repos_overflow=$(echo "$user_api_ret" | grep -i '^name: .*' | sed 's/name: //g')
+					user_repos_overflow=$(echo "$user_repos_overflow" | tail -n ${user_reposleft} | tr '\n' ' ')
+					user_repos_overflow=$(echo "$user_repos_overflow" | rev | cut -c 2- | rev)
+					msg $(dest chan) ${module_label}$'\x032'" ${user_reposleft} "$'\x0f'"more repos. Not showing: ${user_repos_overflow}."
+				fi
+			fi
+		fi
+	fi
+}
+
+hook=$(fantasy.hook github github_repo_info > /dev/null)
