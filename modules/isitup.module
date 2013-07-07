@@ -1,0 +1,17 @@
+#!/bin/bash
+
+module_label=$'\x02'"["$'\x032'"Up?"$'\x0f\x02'"]"$'\x0f'
+
+$(help.hook "$(fantasy.char)isup [url] -- Pings url and tells if it is up.") > /dev/null
+
+pingisup () {
+	mystring=$(echo "${@}" | sed "s/${conf}//")
+	_ret=$(ping -c 2 -W 5 ${mystring})
+	if [[ "${_ret}" =~ "bytes from" ]]; then
+		msg $(dest chan) ${module_label}" It seems to be up for me!"
+	else
+		msg $(dest chan) ${module_label}" It seems to be down from here."
+	fi
+}
+
+hook=$(fantasy.hook isup pingisup > /dev/null)
