@@ -51,7 +51,7 @@ github_repo_info () {
 				OLDIFS=$IFS
 				IFS=$'\n'
 				for lol in $(echo "$user_api_ret" | grep "^name: " | head -n3); do
-					_subret=$(echo "$user_api_ret" | grep -A 13 -B 64 "$lol")
+					_subret=$(echo "$user_api_ret" | grep -A 80 "$lol")
 					repo_name=$(echo "$_subret" | grep '^name: ' | sed 's/^name: //')
 					repo_description=$(echo "$_subret" | grep '^description: ' | sed 's/^description: //')
 					if [ "${#repo_description}" -gt "117" ]; then
@@ -64,7 +64,7 @@ github_repo_info () {
 					repo_language=$(echo "$_subret" | grep '^language: ' | sed -e 's/^language: //')
 					if [ "$repo_language" == "null" ]; then repo_language="Unknown"; fi
 					struct_user_repos=$(echo " (${repo_name}) ${repo_description} [${repo_watchers}w|${repo_forks}f|${repo_open_issues}i] (${repo_language})")
-					msg $(dest chan) ${module_label}$'\x02'" ${repo_name} "$'\x0f'"${repo_description:-No description given.} ["$'\x032'" ${repo_watchers}w"$'\x0f'" |"$'\x033'" ${repo_forks}f"$'\x0f'" |"$'\x035'" ${repo_open_issues}i"$'\x0f'" ] ("$'\x0312'"${repo_language}"$'\x0f'")"
+					msg $(dest chan) ${module_label}$'\x02'" ${repo_name} "$'\x0f'"${repo_description:-No description given.} "${repo_forked}"["$'\x032'" ${repo_watchers}w"$'\x0f'" |"$'\x033'" ${repo_forks}f"$'\x0f'" |"$'\x035'" ${repo_open_issues}i"$'\x0f'" ] ("$'\x0312'"${repo_language}"$'\x0f'")"
 				done
 				IFS=$OLDIFS
 				if [ -n "$toomanyrepos" ]; then
