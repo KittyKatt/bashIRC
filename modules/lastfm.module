@@ -26,13 +26,14 @@ lfm () {
 	fi
 	_ret=$(curl -sL "http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${username}&api_key=${lastfm_api_key}&format=json" | sed 's/{"recenttracks":{"track":\[{"//')
 	if [[ "${_ret}" =~ "No user with that name was found" ]]; then msg $(dest chan) ${module_label}" Last.FM user not found!"
+	elif [[ "${_ret}" =~ '{"recenttracks":{"#text":"\n"' ]]; then msg $(dest chan) ${module_label}" No play history for "$'\x032'"${username}"$'\x0f'"!"
 	else
 		if [[ "${_ret}" =~ '"@attr":{"nowplaying":"true"}' ]]; then last_playing_action="is now playing"
 		else last_playing_action="last played"; fi
 		last_song_name=$(json_awk "name" "${_ret}" | head -1 | sed 's/name":"//')
 		last_song_artist=$(json_awk "artist" "${_ret}" | head -1 | sed 's/artist":"#text":"//')
 		last_song_album=$(json_awk "album" "${_ret}" | head -1 | sed 's/album":"#text":"//')
-		msg $(dest chan) ${module_label}" "$'\x032'"${username}"$'\x0f'" ${last_playing_action} "$'\x032'"${last_song_name}"$'\x0f'" by "$'\x032'"${last_song_artist} "$'\x0f'"from "$'\x032'"${last_song_album}"$'\x0f'"."
+		msg $(dest chan) ${module_label}" "$'\x032'"${username}"$'\x0f'" ${last_playing_action} "$'\x032'"${last_song_name:-N/A}"$'\x0f'" by "$'\x032'"${last_song_artist:-N/A} "$'\x0f'"from "$'\x032'"${last_song_album:-N/A}"$'\x0f'"."
 	fi
 }
 	
