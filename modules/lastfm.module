@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+module_label=$'\x02'"["$'\x032'"Last.FM"$'\x0f\x02'"]"$'\x0f'
+
+$(help.hook "$(fantasy.char)np ?[username] -- Reports last song scrobbled to Last.FM for username or nick if no username is given.") > /dev/null
+
+function json_awk() {
+	_mykey="$1"
+	_mysearch="$2"
+	echo "$_mysearch" 2>/dev/null | awk -F"\",\"" -v k="$_mykey" '{
+		    gsub(/{|}/,"")
+		    for(i=1;i<=NF;i++){
+		        if ( $i ~ k ){
+		            print $i
+		        }
+		    }
+		}' &2>/dev/null
+}
+
+lfm () {
+	if [[ "${1}" ]]; then
+		username="${1}"
+	else
+		nick=$(echo "${input}" | awk '{print $1}' | sed -e 's/://;s/!/ /;' | awk '{print $1}')
+		username="${nick}"
+	fi
+	_ret=$(curl -sL "http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${username}&api_key=${lastfm_api_key}&format=json" | sed 's/{"recenttracks":{"track":\[{"//')
+	if [[ "${_ret}" =~ "No user with that name was found" ]]; then msg $(dest chan) ${module_label}" Last.FM user not found!"
+	else
+		if [[ "${_ret}" =~ '"@attr":{"nowplaying":"true"}' ]]; then last_playing_action="is now playing"
+		else last_playing_action="last played"; fi
+		last_song_name=$(json_awk "name" "${_ret}" | head -1 | sed 's/name":"//')
+		last_song_artist=$(json_awk "artist" "${_ret}" | head -1 | sed 's/artist":"#text":"//')
+		last_song_album=$(json_awk "album" "${_ret}" | head -1 | sed 's/album":"#text":"//')
+		msg $(dest chan) ${module_label}" "$'\x032'"${username}"$'\x0f'" ${last_playing_action} "$'\x032'"${last_song_name}"$'\x0f'" by "$'\x032'"${last_song_artist} "$'\x0f'"from "$'\x032'"${last_song_album}"$'\x0f'"."
+	fi
+}
+	
+
+hook=$(fantasy.hook np lfm > /dev/null)
