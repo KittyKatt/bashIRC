@@ -19,17 +19,17 @@ github_repo_info () {
 				repo_api_ret=$(curl -H "Authorization: token ${github_oauthkey}" -s $base/$repo_info)
 				if [[ "$repo_api_ret" =~ "\"message\": \"Not Found\"" ]]; then msg $(dest chan) ${module_label}" Repository not found."
 				else
-					repo_name=$(echo "$repo_api_ret" | grep '.*"name":' | sed -e 's/.*"name": "//' -e 's/",$//')
-					repo_description=$(echo "$repo_api_ret" | grep '.*"description":' | sed -e 's/.*"description": "//' -e 's/",$//')
+					repo_name=$(echo "$repo_api_ret" | grep '.*"name":' | sed -e 's/.*"name": "//' -e 's/",$//' | head -1)
+					repo_description=$(echo "$repo_api_ret" | grep '.*"description":' | sed -e 's/.*"description": "//' -e 's/",$//' | head -1)
 					if [ "${#repo_description}" -gt "117" ]; then
 						repo_description="${repo_description:0:116}"
 						repo_description="${repo_description}..."
 					fi
-					repo_watchers=$(echo "$repo_api_ret" | grep '.*"watchers":' | sed -e 's/.*"watchers": //' -e 's/,$//')
-					repo_forks=$(echo "$repo_api_ret" | grep '.*"forks":' | sed -e 's/.*"forks": //' -e 's/,$//')
-					repo_open_issues=$(echo "$repo_api_ret" | grep '.*"open_issues_count":' | sed -e 's/.*"open_issues_count": //' -e 's/,$//')
-					repo_url=$(echo "$repo_api_ret" | grep '.*"html_url":' | sed -e 's/.*"html_url": "//' -e 's/,$//')
-					repo_language=$(echo "$repo_api_ret" | grep '.*"language":' | sed -e 's/.*"language": "//' -e 's/",$//')
+					repo_watchers=$(echo "$repo_api_ret" | grep '.*"watchers":' | sed -e 's/.*"watchers": //' -e 's/,$//' | head -1)
+					repo_forks=$(echo "$repo_api_ret" | grep '.*"forks":' | sed -e 's/.*"forks": //' -e 's/,$//' | head -1)
+					repo_open_issues=$(echo "$repo_api_ret" | grep '.*"open_issues_count":' | sed -e 's/.*"open_issues_count": //' -e 's/,$//' | head -1)
+					repo_url=$(echo "$repo_api_ret" | grep '.*"html_url":' | sed -e 's/.*"html_url": "//' -e 's/,$//' | head -1)
+					repo_language=$(echo "$repo_api_ret" | grep '.*"language":' | sed -e 's/.*"language": "//' -e 's/",$//' | head -1)
 					[[ "${repo_language}" =~ 'null' ]] && repo_language="Unknown"
 					struct_repoinfo=$'\x02'"$repo_name:"$'\x0f'" ${repo_description:-No description given.} [ "$'\x032'"Watchers: $repo_watchers "$'\x0f'"| "$'\x033'"Forks: $repo_forks "$'\x0f'"| "$'\x034'"Open Issues: $repo_open_issues"$'\x0f'" ] ( "$'\x0312'"${repo_language}"$'\x0f'" )"
 					msg $(dest chan) ${module_label}" $struct_repoinfo"
