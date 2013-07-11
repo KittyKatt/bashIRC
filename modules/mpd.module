@@ -5,7 +5,7 @@ module_label=$'\x02'"["$'\x032'"MPD"$'\x0f\x02'"]"$'\x0f'
 my_mpdstreamurl="http://www.kittykatt.us:8000"
 
 $(help.hook "$(fantasy.char)stream -- Displays some info on MPD stream for KittyKatt's server.") > /dev/null
-$(help.hook "$(fantasy.char)np -- Displays now playing for KittyKatt's MPD server.") > /dev/null
+$(help.hook "$(fantasy.char)mpd -- Displays now playing for KittyKatt's MPD server.") > /dev/null
 
 function mpd_sndcommand() {
         # $1 command
@@ -69,4 +69,4 @@ function mpd_streaminfo() {
 }
 
 hook=$(fantasy.hook stream mpd_streaminfo > /dev/null)
-hook=$(fantasy.hook np mpd_nowplaying > /dev/null)
+hook=$(fantasy.hook mpd mpd_nowplaying > /dev/null)
