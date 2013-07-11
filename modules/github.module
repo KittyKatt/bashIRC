@@ -30,7 +30,7 @@ github_repo_info () {
 					repo_open_issues=$(echo "$repo_api_ret" | grep '.*"open_issues_count":' | sed -e 's/.*"open_issues_count": //' -e 's/,$//')
 					repo_url=$(echo "$repo_api_ret" | grep '.*"html_url":' | sed -e 's/.*"html_url": "//' -e 's/,$//')
 					repo_language=$(echo "$repo_api_ret" | grep '.*"language":' | sed -e 's/.*"language": "//' -e 's/",$//')
-					if [ "$repo_language" == "null" ]; then repo_language="Unknown"; fi
+					[[ "${repo_language}" =~ 'null' ]] && repo_language="Unknown"
 					struct_repoinfo=$'\x02'"$repo_name:"$'\x0f'" ${repo_description:-No description given.} [ "$'\x032'"Watchers: $repo_watchers "$'\x0f'"| "$'\x033'"Forks: $repo_forks "$'\x0f'"| "$'\x034'"Open Issues: $repo_open_issues"$'\x0f'" ] ( "$'\x0312'"${repo_language}"$'\x0f'" )"
 					msg $(dest chan) ${module_label}" $struct_repoinfo"
 				fi
@@ -57,6 +57,10 @@ github_repo_info () {
 					if [ "${#repo_description}" -gt "117" ]; then
 						repo_description="${repo_description:0:116}"
 						repo_description="${repo_description}..."
+					fi
+					repo_fork_status=$("echo $_subret" | grep '^fork: ' | sed 's/^fork: //')
+					if [[ "${repo_fork_status}" == "true" ]]; then
+						repo_forked="("$'\x032'" Fork "$'\x0f'") "
 					fi
 					repo_watchers=$(echo "$_subret" | grep '^watchers: ' | sed -e 's/^watchers: //')
 					repo_forks=$(echo "$_subret" | grep '^forks: ' | sed -e 's/^forks: //')
