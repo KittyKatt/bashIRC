@@ -28,10 +28,13 @@ github_repo_info () {
 					repo_watchers=$(echo "$repo_api_ret" | grep '.*"watchers":' | sed -e 's/.*"watchers": //' -e 's/,$//' | head -1)
 					repo_forks=$(echo "$repo_api_ret" | grep '.*"forks":' | sed -e 's/.*"forks": //' -e 's/,$//' | head -1)
 					repo_open_issues=$(echo "$repo_api_ret" | grep '.*"open_issues_count":' | sed -e 's/.*"open_issues_count": //' -e 's/,$//' | head -1)
-					repo_url=$(echo "$repo_api_ret" | grep '.*"html_url":' | sed -e 's/.*"html_url": "//' -e 's/,$//' | head -1)
+					# repo_url=$(echo "$repo_api_ret" | grep '.*"html_url":' | sed -e 's/.*"html_url": "//' -e 's/,$//' | head -1)
+					repo_url="https://github.com/${user}/${repo}/"
+					repo_url=$(curl -sL "http://scurl.tk/api.php?url=${repo_url}")
+					repo_url=${repo_url//%}
 					repo_language=$(echo "$repo_api_ret" | grep '.*"language":' | sed -e 's/.*"language": "//' -e 's/",$//' | head -1)
 					[[ "${repo_language}" =~ 'null' ]] && repo_language="Unknown"
-					struct_repoinfo=$'\x02'"$repo_name:"$'\x0f'" ${repo_description:-No description given.} [ "$'\x032'"Watchers: $repo_watchers "$'\x0f'"| "$'\x033'"Forks: $repo_forks "$'\x0f'"| "$'\x034'"Open Issues: $repo_open_issues"$'\x0f'" ] ( "$'\x0312'"${repo_language}"$'\x0f'" )"
+					struct_repoinfo=$'\x02'"$repo_name:"$'\x0f'" ${repo_description:-No description given.} [ "$'\x032'"Watchers: $repo_watchers "$'\x0f'"| "$'\x033'"Forks: $repo_forks "$'\x0f'"| "$'\x034'"Open Issues: $repo_open_issues"$'\x0f'" ] ${repo_url} ( "$'\x0312'"${repo_language}"$'\x0f'" )"
 					msg $(dest chan) ${module_label}" $struct_repoinfo"
 				fi
 			fi
