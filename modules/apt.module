@@ -1,0 +1,20 @@
+#!/bin/bash
+
+module_label=$'\x02'"["$'\x032'"Pacman"$'\x0f\x02'"]"$'\x0f'
+
+$(help.hook "$(fantasy.char)apt [package name] -- Searches Debian package database for package matching string.") > /dev/null
+
+function pkgsearch() {
+	module_label=$'\x02'"["$'\x032'"APT"$'\x0f\x02'"]"$'\x0f'
+	_query=$(echo "$1" | awk '{print $1}')
+	_myresult=$(apt-cache search "$_query" 2> /dev/null)
+	_myresult=$(grep -E "^${_query} - " <<< "${_myresult}")
+	if [[ -z "$_myresult" ]]; then msg $(dest chan) ${module_label}" No package matching that name found."; aursearch "$_query"
+	else
+		_pkgname=$(echo "$_myresult" | awk -F' - ' '{print $1}')
+		_pkgdesc=$(echo "$_myresult" | awk -F' - ' '{$1=""; print $0}')
+		msg $(dest chan) ${module_label}" ( "$'\x032'"${_pkgname}"$'\x0f'" ) ${_pkgdesc}."
+	fi
+}
+
+hook=$(fantasy.hook apt pkgsearch > /dev/null)
